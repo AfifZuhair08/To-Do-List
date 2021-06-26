@@ -1,36 +1,45 @@
+// includes library
 const express = require("express");
 const bodyParser = require("body-parser");
 
+// initiate express server
 const app = express();
+
+// set server settings
 app.set('view engine', 'ejs');
+app.use(bodyParser.urlencoded({extended: true}));
+
+// global variables
+var items = ["Buy Food","Cook Food","Eat Food"];
 
 app.get("/", function(req,res){
     var today = new Date();
-    var currentDay = today.getDay();
-    var day = "";
-    
-    res.set("Content-Type", "text/html");
 
-    if (currentDay === 6){
-        day = "Saturday";
-    }else if(currentDay === 0){
-        day = "Sunday";
-    }else if(currentDay === 1){
-        day = "Monday";
-    }else if(currentDay === 2){
-        day = "Tuesday";
-    }else if(currentDay === 3){
-        day = "Wednesday";
-    }else if(currentDay === 4){
-        day = "Thursday";
-    }else if(currentDay === 5){
-        day = "Friday";
-    }else{
-        day = "undefined";
-    }
+    var options = {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    };
     
-    res.render("list", {kindOfDay: day});
+    var day = today.toLocaleDateString("en-MY", options);
+
+    res.render("list", {kindOfDay: day, newListItems: items});
 });
+
+
+app.post("/", function(req,res){
+    // reassign to global variable
+    item = req.body.newItem;
+
+    // push items as array into global variable
+    items.push(item);
+
+    // res.render("list", {newListItem: item});
+    // redirect to homepage
+    res.redirect("/");
+});
+
 
 app.listen(3000, function(){
     console.log("Server started on port 3000");
