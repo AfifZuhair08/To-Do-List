@@ -14,13 +14,13 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
 // global letiables
-let items = ["Buy Food","Cook Food","Eat Food"];
-let workItems = [];
+const items = ["Buy Food","Cook Food","Eat Food"];
+const workItems = [];
 
 app.get("/", function(req,res){
     
     // include external files module
-    let day = date.getDay();
+    const day = date.getDate();
 
     // start file named 'lists' and carry the data set
     res.render("list", {listTitle: day, newListItems: items});
@@ -30,7 +30,7 @@ app.get("/", function(req,res){
 app.post("/", function(req,res){
 
     // reassign to global letiable
-    let item = req.body.newItem;
+    const item = req.body.newItem;
 
     if(req.body.list === "Work"){
         workItems.push(item);
