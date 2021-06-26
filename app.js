@@ -2,43 +2,56 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 
+// import js files
+const date = require(__dirname + "/date.js");
+
 // initiate express server
 const app = express();
 
 // set server settings
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(express.static("public"));
 
-// global variables
-var items = ["Buy Food","Cook Food","Eat Food"];
+// global letiables
+let items = ["Buy Food","Cook Food","Eat Food"];
+let workItems = [];
 
 app.get("/", function(req,res){
-    var today = new Date();
-
-    var options = {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric"
-    };
     
-    var day = today.toLocaleDateString("en-MY", options);
+    // include external files module
+    let day = date.getDay();
 
-    res.render("list", {kindOfDay: day, newListItems: items});
+    // start file named 'lists' and carry the data set
+    res.render("list", {listTitle: day, newListItems: items});
 });
 
 
 app.post("/", function(req,res){
-    // reassign to global variable
-    item = req.body.newItem;
 
-    // push items as array into global variable
-    items.push(item);
+    // reassign to global letiable
+    let item = req.body.newItem;
 
-    // res.render("list", {newListItem: item});
-    // redirect to homepage
-    res.redirect("/");
+    if(req.body.list === "Work"){
+        workItems.push(item);
+        res.redirect("/work");
+    }else{
+        // push items as array into global letiable
+        items.push(item);
+        // redirect to homepage
+        res.redirect("/");
+    }
 });
+
+
+app.get("/work", function(req, res){
+    res.render("list",{listTitle: "Work Lists", newListItems: workItems});
+});
+
+app.post("/work", function(req,res){
+    let item = req.body.item;
+    res.redirect("/work");
+})
 
 
 app.listen(3000, function(){
