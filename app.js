@@ -1,6 +1,7 @@
 // includes library
 const express = require("express");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
 
 // import js files
 const date = require(__dirname + "/date.js");
@@ -12,46 +13,94 @@ const app = express();
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
+mongoose.set('useFindAndModify', false);
 
-// global letiables
-const items = ["Buy Food","Cook Food","Eat Food"];
-const workItems = [];
+// Mongoose Connection
+mongoose.connect("mongodb://localhost:27017/todolistDB", {useNewUrlParser: true, useUnifiedTopology: true});
+
+// SCHEMA
+const itemsSchema = new mongoose.Schema({
+    name: String,
+});
+
+// MODEL
+const Item = new mongoose.model("Item", itemsSchema);
+
+// DOCUMENT
+const drink = new Item({
+    name: "Drink Water",
+});
+const eat = new Item({
+    name: "Eat food",
+});
+const clean = new Item({
+    name: "Clean dishes",
+});
+
+// ALL IN DEFAULT ARRAY
+const defaultItems = [drink, eat, clean];
+
+// INSERT ALL DOCS
+// Item.insertMany(defaultItems, function (err){
+//     if (err){
+//         console.log(err);
+//     }else{
+//         console.log("Successfully inserted all items");
+//     }
+// });
+
 
 app.get("/", function(req,res){
     
     // include external files module
-    const day = date.getDate();
+    // const day = date.getDate();
+    Item.find({}, function(err, foundItems){
 
-    // start file named 'lists' and carry the data set
-    res.render("list", {listTitle: day, newListItems: items});
+        if(foundItems.length === 0){
+            Item.insertMany(defaultItems, function (err){
+                if (err){
+                    console.log(err);
+                }else{
+                    console.log("Successfully inserted all items");
+                }
+            });
+            res.redirect("/");
+        }else{
+            // start file named 'lists' and carry the data set
+            res.render("list", {listTitle: "Today", newListItems: foundItems});
+        }
+    });
 });
 
 
 app.post("/", function(req,res){
 
     // reassign to global letiable
-    const item = req.body.newItem;
+    const itemName = req.body.newItem;
 
-    if(req.body.list === "Work"){
-        workItems.push(item);
-        res.redirect("/work");
-    }else{
-        // push items as array into global letiable
-        items.push(item);
-        // redirect to homepage
-        res.redirect("/");
-    }
+    const item = new Item({
+        name: itemName
+    });
+
+    item.save();
+
+    // redirect to homepage
+    res.redirect("/");
 });
 
+app.post("/delete", function(req, res){
+    const checkedItemId = req.body.checkbox;
 
-app.get("/work", function(req, res){
-    res.render("list",{listTitle: "Work Lists", newListItems: workItems});
+    Item.findByIdAndRemove(checkedItemId, function(err){
+        if(err){
+            console.log(err);
+        }else{
+            console.log("Successfully delete checked item");
+        }
+    });
+
+    res.redirect("/");
 });
-
-app.post("/work", function(req,res){
-    let item = req.body.item;
-    res.redirect("/work");
-})
 
 
 app.listen(3000, function(){
