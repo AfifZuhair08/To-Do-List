@@ -31,7 +31,7 @@ h1 {
 }
 
 .item:last-child {
-  border-bottom: 0;
+  border-bottom: 1px;
 }
 
 input:checked+p {
